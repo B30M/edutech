@@ -218,7 +218,7 @@
     { t: "한 분야 전문가보다 다양한 분야의 폭넓은 경험을 중시한다.", cat: "exp" },
     { t: "불편하더라도 이득이 더 많은 쪽을 무조건 선택한다.", cat: "study" },
     { t: "감정적 충격 상황에서도 이성적으로 판단하려 노력한다.", cat: "study" },
-    { t: "모르는 분야에 대해 스스로 공부하고 정보를 찾아내는 것에 시간을 쓰는 것을 좋아한다.", cat: "study" }
+    { t: "모르는 분야에 대해 스스로 정보를 찾아 공부하는 걸 즐긴다.", cat: "study" }
   ];
 
   let currentStep = 0;
@@ -303,7 +303,7 @@
     if (totalScore <= 20) {
       badgeText = "안정형 (Stability Focus)";
       titleText = "🐿️ 소확행 저축 다람쥐";
-      descText = "\"손해?\" 그게 뭔데? 어떻게 하는 건데?";
+      descText = "\"손해?\" 그게 뭔데? 어떻게 하는 건데?.";
       product = "예금, 국채";
       advice = "원금 보장이 최우선입니다. 금융 이해도를 높이는 기초 강의부터 수강해보세요.";
     } else if (totalScore <= 30) {
@@ -328,7 +328,7 @@
 
     document.getElementById("resultBadge").textContent = badgeText;
     document.getElementById("resultTitle").textContent = titleText;
-    document.getElementById("resultDesc").textContent = descText; 
+    document.getElementById("resultDesc").innerHTML = descText; /* innerHTML로 변경 */
     document.getElementById("resultProduct").textContent = product;
     document.getElementById("resultAdvice").textContent = advice;
 
