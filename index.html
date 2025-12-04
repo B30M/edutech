@@ -48,7 +48,7 @@
     /* 차트 영역 */
     .chart-container { position: relative; height: 250px; width: 100%; margin: 20px auto; }
     
-    /* 결과 텍스트 카드 (기존 내용 + 신규 디자인) */
+    /* 결과 텍스트 카드 */
     .result-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; text-align: left; margin-top: 24px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
     .card-item { margin-bottom: 12px; }
     .card-label { font-size: 0.9rem; color: #64748b; font-weight: 700; display: block; margin-bottom: 4px; }
@@ -61,9 +61,17 @@
     .pw-input:focus { border-color: var(--primary); background: white; }
     .pw-desc { font-size: 0.85rem; color: #94a3b8; margin-top: 10px; }
 
+    /* 버튼 스타일 통일 */
+    .button-group { display: flex; gap: 12px; margin-top: 24px; }
     .start-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; border-radius: 16px; font-size: 1.1rem; cursor: pointer; font-weight: 700; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: transform 0.2s; }
     .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
-    .share-btn { margin-top: 15px; background: white; color: var(--primary); border: 2px solid var(--primary); }
+    
+    /* 공유 버튼 스타일 (흰색 배경) - start-btn 클래스와 함께 사용하여 크기 통일 */
+    .share-btn { background: white; color: var(--primary); border: 2px solid var(--primary); box-shadow: none; }
+    .share-btn:hover { background: #eef2ff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
+    
+    /* 플렉스 아이템 비율 설정 */
+    .button-group .start-btn { flex: 1; } 
 
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -117,7 +125,7 @@
       </div>
     </div>
 
-    <div style="display:flex; gap:10px; margin-top:20px;">
+    <div class="button-group">
       <button class="start-btn share-btn" onclick="copyResult()">결과 공유</button>
       <button class="start-btn" onclick="location.reload()">다시 하기</button>
     </div>
@@ -128,7 +136,7 @@
   // 🔑 비밀번호 설정
   const CORRECT_PASSWORD = "1234"; 
 
-  // 질문 데이터 (기존 10문항 복구)
+  // 질문 데이터
   const questions = [
     { t: "나는 평소 익숙하고 안전한 길보다는 새로운 도전을 통해 얻는 성과를 중요하게 생각한다.", cat: "risk" },
     { t: "중요한 시험이나 발표를 망쳤을 때, 쉽게 좌절하지 않고 다음 기회를 준비하는 편이다.", cat: "risk" },
@@ -170,7 +178,6 @@
     const percent = ((currentStep) / questions.length) * 100;
     document.getElementById('progressBar').style.width = percent + '%';
 
-    // 5지 선다 버튼 생성
     let optionsHTML = '';
     const labels = ["매우 그렇지 않다 (1점)", "그렇지 않다 (2점)", "보통이다 (3점)", "그렇다 (4점)", "매우 그렇다 (5점)"];
     
@@ -208,7 +215,6 @@
     const text = document.getElementById('loadingText');
     loading.style.display = 'block';
 
-    // 로딩 멘트
     setTimeout(() => text.innerText = "💰 투자 성향 분석 중...", 800);
     setTimeout(() => text.innerText = "📊 데이터 시각화 중...", 1800);
     setTimeout(() => {
@@ -220,7 +226,6 @@
   function showResult() {
     document.getElementById('resultBox').style.display = 'block';
 
-    // 기존 로직과 텍스트 사용
     let type="", product="", advice="";
     if (totalScore <= 20) {
       type="안정형 (Stability Focus)";
@@ -244,7 +249,7 @@
     document.getElementById("resultProduct").textContent = product;
     document.getElementById("resultAdvice").textContent = advice;
 
-    // 차트 생성 (기존 레이더 차트)
+    // 차트 생성 (초기 버전 스타일 복구: 선명한 그리드 라인)
     const ctx = document.getElementById('resultChart').getContext('2d');
     new Chart(ctx, {
       type: 'radar',
@@ -253,23 +258,26 @@
         datasets: [{
           label: '나의 성향',
           data: [scores.risk, scores.study, scores.exp],
-          backgroundColor: 'rgba(99, 102, 241, 0.2)',
+          // 내부 채우기 (보라색)
+          backgroundColor: 'rgba(99, 102, 241, 0.4)', 
           borderColor: '#6366f1',
           pointBackgroundColor: '#8b5cf6',
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: '#8b5cf6'
+          pointHoverBorderColor: '#8b5cf6',
+          borderWidth: 2
         }]
       },
       options: {
         scales: {
           r: {
-            angleLines: { color: 'rgba(0,0,0,0.1)' },
-            grid: { color: 'rgba(0,0,0,0.05)' },
+            // 초기 버전처럼 그리드(외부 삼각형 모양)를 선명하게 표시
+            angleLines: { display: true, color: '#e5e7eb' },
+            grid: { display: true, color: '#e5e7eb' },
             pointLabels: { font: { size: 12, weight: 'bold', family: 'Pretendard' }, color: '#475569' },
             beginAtZero: true,
-            max: 20, // 문항수에 따른 최대 점수 조정
-            ticks: { display: false }
+            max: 20, 
+            ticks: { display: false } // 숫자는 지저분해 보일 수 있어 숨김 (필요시 true로 변경)
           }
         },
         plugins: { legend: { display: false } }
@@ -281,7 +289,7 @@
     const type = document.getElementById('resultType').innerText;
     const dummy = document.createElement("textarea");
     document.body.appendChild(dummy);
-    dummy.value = `[대학생 투자 성향 리포트]\n나의 유형은: ${type}\n\n같이 테스트 해볼래\n\nhttps://b30m.github.io/edutech/?`;
+    dummy.value = `[대학생 투자 성향 리포트]\n나의 유형은: ${type}\n\n같이 테스트 해볼래?`;
     dummy.select();
     document.execCommand("copy");
     document.body.removeChild(dummy);
