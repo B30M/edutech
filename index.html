@@ -6,7 +6,7 @@
   <title>대학생 투자 성향 리포트</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* V3 디자인 (대학생 타겟 그라데이션 테마) 유지 */
+    /* V3 디자인 (대학생 타겟 그라데이션 테마) 적용 */
     :root { --primary: #6366f1; --accent: #8b5cf6; --bg: #f8fafc; }
     body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
     
@@ -42,7 +42,11 @@
 
     /* 결과 화면 */
     #resultBox { display: none; text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    
+    /* 뱃지 스타일 (안정형 등 표시) */
     .badge { display: inline-block; padding: 8px 16px; background: #eef2ff; color: var(--primary); border-radius: 30px; font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; border: 1px solid #c7d2fe; }
+    
+    /* 결과 타이틀 스타일 (캐릭터 이름) */
     .result-name { font-size: 1.8rem; margin: 0 0 20px 0; color: #1e293b; font-weight: 800; line-height: 1.3; word-break: keep-all; }
     
     /* 차트 영역 */
@@ -61,16 +65,14 @@
     .pw-input:focus { border-color: var(--primary); background: white; }
     .pw-desc { font-size: 0.85rem; color: #94a3b8; margin-top: 10px; }
 
-    /* 버튼 스타일 통일 */
+    /* 버튼 스타일 통일 (5:5 비율) */
     .button-group { display: flex; gap: 12px; margin-top: 24px; }
     .start-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; border-radius: 16px; font-size: 1.1rem; cursor: pointer; font-weight: 700; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: transform 0.2s; }
     .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
     
-    /* 공유 버튼 스타일 (흰색 배경) - start-btn 클래스와 함께 사용하여 크기 통일 */
     .share-btn { background: white; color: var(--primary); border: 2px solid var(--primary); box-shadow: none; }
     .share-btn:hover { background: #eef2ff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
     
-    /* 플렉스 아이템 비율 설정 */
     .button-group .start-btn { flex: 1; } 
 
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -84,8 +86,8 @@
   <div id="intro">
     <h1>🚀 대학생 투자 성향 리포트</h1>
     <p class="subtitle">
-      10가지 질문을 통해 당신에게 딱 맞는<br>
-      에듀테크 투자 학습법을 알아보세요.
+      10가지 질문을 통해 당신에게<br>
+      딱 맞는투자 방법을 알아보세요.
     </p>
 
     <div class="password-section">
@@ -107,8 +109,8 @@
   </div>
 
   <div id="resultBox">
-    <span class="badge">MY INVESTMENT TYPE</span>
-    <h1 class="result-name" id="resultType"></h1>
+    <span class="badge" id="resultBadge"></span>
+    <h1 class="result-name" id="resultTitle"></h1>
     
     <div class="chart-container">
       <canvas id="resultChart"></canvas>
@@ -133,21 +135,21 @@
 </div>
 
 <script>
-  // 🔑 비밀번호 설정
+  // 🔑 비밀번호 (변경 가능)
   const CORRECT_PASSWORD = "1234"; 
 
-  // 질문 데이터
+  // 질문 데이터 (보내주신 원본 데이터 유지)
   const questions = [
-    { t: "나는 평소 익숙하고 안전한 길보다는 새로운 도전을 통해 얻는 성과를 중요하게 생각한다.", cat: "risk" },
-    { t: "중요한 시험이나 발표를 망쳤을 때, 쉽게 좌절하지 않고 다음 기회를 준비하는 편이다.", cat: "risk" },
-    { t: "어떤 일을 시작할 때, 장기간에 걸쳐 꾸준히 노력하는 것보다 빠른 시간 내에 성과를 내는 것을 선호한다.", cat: "risk" },
-    { t: "식당이나 메뉴를 선택할 때, 이미 검증된 곳보다는 새로운 맛집을 찾아다니는 것을 즐긴다.", cat: "exp" },
-    { t: "나는 계획을 세우기 보단 즉흥적으로 움직이는 것을 즐긴다.", cat: "exp" },
-    { t: "여가 시간에 주로 새로운 지식을 배우거나 복잡한 정보를 분석하는 활동에 흥미를 느낀다.", cat: "study" },
-    { t: "한 분야의 전문가가 되는 것보다, 여러 분야에 걸쳐 폭넓게 경험하는 것을 중요하게 생각한다.", cat: "exp" },
-    { t: "편리하지만 이득이 적은 것과 불편하지만 이득이 많은 것이 있다면 이득을 우선시 한다.", cat: "study" },
-    { t: "감정적인 충격을 받았을 때, 감정에 휩쓸리기보다 이성적으로 상황을 판단하려고 노력한다.", cat: "study" },
-    { t: "나는 모르는 분야에 대해 스스로 공부하고 정보를 찾아내는 것에 시간을 쓰는 것을 좋아한다.", cat: "study" }
+    { t: "익숙한 길보다 새로운 도전을 통해 얻는 성과가 더 중요하다.", cat: "risk" },
+    { t: "실패해도 좌절하지 않고 다음 기회를 빠르게 준비한다.", cat: "risk" },
+    { t: "장기적 노력보다 단기간의 빠른 성과를 선호한다.", cat: "risk" },
+    { t: "검증된 맛집보다 새로운 식당을 찾아다니는 것을 즐긴다.", cat: "exp" },
+    { t: "계획보다는 즉흥적으로 움직이는 것을 즐긴다.", cat: "exp" },
+    { t: "여가 시간에 새로운 지식을 배우거나 분석하는 걸 좋아한다.", cat: "study" },
+    { t: "한 분야 전문가보다 다양한 분야의 폭넓은 경험을 중시한다.", cat: "exp" },
+    { t: "불편하더라도 이득이 더 많은 쪽을 무조건 선택한다.", cat: "study" },
+    { t: "감정적 충격 상황에서도 이성적으로 판단하려 노력한다.", cat: "study" },
+    { t: "모르는 분야에 대해 스스로 정보를 찾아 공부하는 걸 즐긴다.", cat: "study" }
   ];
 
   let currentStep = 0;
@@ -226,30 +228,37 @@
   function showResult() {
     document.getElementById('resultBox').style.display = 'block';
 
-    let type="", product="", advice="";
+    let badgeText="", titleText="", product="", advice="";
+    
+    // 점수 로직 (보내주신 기준 활용) + 타이틀/뱃지 분리 적용
     if (totalScore <= 20) {
-      type="안정형 (Stability Focus)";
-      product="예금";
-      advice="안정 최우선: 원금 보장과 확정 금리를 기반으로 자산을 모으세요.";
+      badgeText = "안정형 (Stability Focus)";
+      titleText = "🐿️ 소확행 저축 다람쥐";
+      product = "예금, 국채";
+      advice = "원금 보장이 최우선입니다. 금융 이해도를 높이는 기초 강의부터 수강해보세요.";
     } else if (totalScore <= 30) {
-      type="안정 추구형 (Goal-Oriented)";
-      product="적금";
-      advice="계획적 성장: 꾸준한 저축을 통해 재정 목표를 달성하세요.";
+      badgeText = "안정 추구형 (Goal-Oriented)";
+      titleText = "🏗️ 차곡차곡 빌드업 장인";
+      product = "적금, 채권 혼합형 펀드";
+      advice = "목표 달성을 위해 꾸준함이 중요합니다. 자산 배분 시뮬레이션을 통해 포트폴리오 감각을 익히세요.";
     } else if (totalScore <= 40) {
-      type="위험 중립형 (Market Follower)";
-      product="ETF";
-      advice="균형 투자: 분산을 통해 안정성과 시장 평균 수익을 추구하세요.";
+      badgeText = "위험 중립형 (Market Follower)";
+      titleText = "🏄 파도를 타는 트렌드 세터";
+      product = "ETF, 배당주";
+      advice = "시장 흐름을 잘 읽으시는군요. 실시간 시장 데이터를 분석하는 툴을 활용해 투자를 고도화하세요.";
     } else {
-      type="공격형 (Aggressive Growth)";
-      product="주식";
-      advice="분석 기반의 공격적 투자로 자산 증식을 시도하세요.";
+      badgeText = "공격형 (Aggressive Growth)";
+      titleText = "🦁 야수의 심장 로켓맨";
+      product = "주식, 암호화폐, 파생상품";
+      advice = "하이 리스크, 하이 리턴! 하지만 감보다 데이터가 중요합니다. 알고리즘 트레이딩이나 차트 분석 심화 과정을 추천합니다.";
     }
 
-    document.getElementById("resultType").textContent = type;
+    document.getElementById("resultBadge").textContent = badgeText;
+    document.getElementById("resultTitle").textContent = titleText;
     document.getElementById("resultProduct").textContent = product;
     document.getElementById("resultAdvice").textContent = advice;
 
-    // 차트 생성 (초기 버전 스타일 복구: 선명한 그리드 라인)
+    // 차트 생성 (초기 버전 스타일: 회색 그리드 + 보라색 채우기)
     const ctx = document.getElementById('resultChart').getContext('2d');
     new Chart(ctx, {
       type: 'radar',
@@ -258,26 +267,23 @@
         datasets: [{
           label: '나의 성향',
           data: [scores.risk, scores.study, scores.exp],
-          // 내부 채우기 (보라색)
-          backgroundColor: 'rgba(99, 102, 241, 0.4)', 
-          borderColor: '#6366f1',
-          pointBackgroundColor: '#8b5cf6',
+          backgroundColor: 'rgba(79, 70, 229, 0.4)', // 내부 색상 (보라색 투명)
+          borderColor: '#4F46E5',
+          pointBackgroundColor: '#4F46E5',
           pointBorderColor: '#fff',
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: '#8b5cf6',
           borderWidth: 2
         }]
       },
       options: {
         scales: {
           r: {
-            // 초기 버전처럼 그리드(외부 삼각형 모양)를 선명하게 표시
+            // 요청하신 대로 가이드라인(그리드)이 선명하게 보이도록 설정
             angleLines: { display: true, color: '#e5e7eb' },
             grid: { display: true, color: '#e5e7eb' },
             pointLabels: { font: { size: 12, weight: 'bold', family: 'Pretendard' }, color: '#475569' },
             beginAtZero: true,
             max: 20, 
-            ticks: { display: false } // 숫자는 지저분해 보일 수 있어 숨김 (필요시 true로 변경)
+            ticks: { display: false }
           }
         },
         plugins: { legend: { display: false } }
@@ -286,10 +292,12 @@
   }
 
   function copyResult() {
-    const type = document.getElementById('resultType').innerText;
+    const title = document.getElementById('resultTitle').innerText;
+    const badge = document.getElementById('resultBadge').innerText;
+    
     const dummy = document.createElement("textarea");
     document.body.appendChild(dummy);
-    dummy.value = `[대학생 투자 성향 리포트]\n나의 유형은: ${type}\n\n같이 테스트 해볼래?`;
+    dummy.value = `[대학생 투자 성향 리포트]\n나의 유형: ${badge}\n캐릭터: ${title}\n\n같이 테스트 해볼래?\nhttps://b30m.github.io/edutech/`;
     dummy.select();
     document.execCommand("copy");
     document.body.removeChild(dummy);
