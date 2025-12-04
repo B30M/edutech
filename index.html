@@ -34,7 +34,14 @@
     .chart-container { margin: 20px 0; }
     .advice-box { background: #F9FAFB; padding: 15px; border-radius: 10px; text-align: left; font-size: 0.95rem; color: #555; line-height: 1.6; margin-top: 15px;}
     
-    /* 애니메이션 */
+    /* 비밀번호 입력 스타일 추가 */
+    .password-section { margin-top: 20px; margin-bottom: 20px; text-align: center; }
+    .pw-input {
+      width: 80%; padding: 12px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; outline: none; text-align: center; letter-spacing: 2px;
+    }
+    .pw-input:focus { border-color: var(--primary); }
+    .pw-desc { font-size: 0.85rem; color: #888; margin-top: 8px; }
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
     .start-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; cursor: pointer; font-weight: bold; }
@@ -45,10 +52,16 @@
 <div class="container">
   <div id="intro">
     <h1 style="text-align:center;">💰 투자 성향 진단</h1>
-    <p style="text-align:center; color:#666; margin-bottom:30px;">
+    <p style="text-align:center; color:#666; margin-bottom:20px;">
       10가지 질문을 통해 당신에게 딱 맞는<br>에듀테크 투자 학습법을 알아보세요.
     </p>
-    <button class="start-btn" onclick="startSurvey()">진단 시작하기</button>
+
+    <div class="password-section">
+      <input type="password" id="passwordInput" class="pw-input" placeholder="비밀번호 입력">
+      <p class="pw-desc">강의자가 공지한 비밀번호를 입력하시오.</p>
+    </div>
+
+    <button class="start-btn" onclick="checkPasswordAndStart()">진단 시작하기</button>
   </div>
 
   <div id="quiz" style="display:none;">
@@ -76,8 +89,9 @@
 </div>
 
 <script>
-  // 질문 데이터 (기존 내용 활용 + 카테고리 추가)
-  // category: 1=도전/위험감수, 2=학습/분석, 3=경험/직관 (차트용 가상 분류)
+  // 🔑 여기서 비밀번호를 변경하세요!
+  const CORRECT_PASSWORD = "1208"; 
+
   const questions = [
     { t: "익숙한 길보다 새로운 도전을 통해 얻는 성과가 더 중요하다.", cat: "risk" },
     { t: "실패해도 좌절하지 않고 다음 기회를 빠르게 준비한다.", cat: "risk" },
@@ -92,8 +106,21 @@
   ];
 
   let currentStep = 0;
-  let scores = { risk: 0, study: 0, exp: 0 }; // 카테고리별 점수
+  let scores = { risk: 0, study: 0, exp: 0 }; 
   let totalScore = 0;
+
+  // 비밀번호 확인 함수
+  function checkPasswordAndStart() {
+    const input = document.getElementById("passwordInput").value;
+    
+    if (input === CORRECT_PASSWORD) {
+      startSurvey();
+    } else {
+      alert("비밀번호가 틀립니다. 다시 시도하십시오.");
+      document.getElementById("passwordInput").value = ""; // 입력창 비우기
+      document.getElementById("passwordInput").focus();  // 다시 입력하기 편하게 포커스
+    }
+  }
 
   function startSurvey() {
     document.getElementById('intro').style.display = 'none';
@@ -126,7 +153,7 @@
 
   function next(score, category) {
     totalScore += score;
-    scores[category] += score; // 차트용 점수 누적
+    scores[category] += score;
     
     currentStep++;
     if (currentStep < questions.length) {
@@ -163,7 +190,6 @@
     document.getElementById('resultProduct').innerText = product;
     document.getElementById('resultAdvice').innerText = advice;
 
-    // 차트 그리기 (Radar Chart)
     const ctx = document.getElementById('resultChart').getContext('2d');
     new Chart(ctx, {
       type: 'radar',
@@ -181,8 +207,8 @@
         scales: {
           r: {
             beginAtZero: true,
-            max: 20, // 문항 수에 따라 조절 (여기선 대략적인 최대치)
-            ticks: { display: false } // 눈금 숫자 숨김
+            max: 20,
+            ticks: { display: false }
           }
         }
       }
