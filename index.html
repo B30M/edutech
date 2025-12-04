@@ -6,10 +6,11 @@
   <title>대학생 투자 성향 리포트</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* V3 디자인 (대학생 타겟 그라데이션 테마) 유지 */
     :root { --primary: #6366f1; --accent: #8b5cf6; --bg: #f8fafc; }
     body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
     
-    .container { width: 90%; max-width: 420px; background: rgba(255, 255, 255, 0.95); padding: 32px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); backdrop-filter: blur(10px); position: relative; overflow: hidden; }
+    .container { width: 90%; max-width: 460px; background: rgba(255, 255, 255, 0.95); padding: 32px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); backdrop-filter: blur(10px); position: relative; overflow: hidden; }
     
     /* 타이틀 */
     h1 { font-size: 1.8rem; text-align: center; background: linear-gradient(to right, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; font-weight: 800; }
@@ -22,13 +23,13 @@
     /* 질문 카드 */
     .question-box { display: none; animation: slideUp 0.4s ease-out; }
     .question-box.active { display: block; }
-    h2 { font-size: 1.35rem; color: #1e293b; margin-bottom: 24px; line-height: 1.4; font-weight: 700; }
+    h2 { font-size: 1.2rem; color: #1e293b; margin-bottom: 20px; line-height: 1.5; font-weight: 700; word-break: keep-all; }
     
-    /* 선택 버튼 */
-    .options { display: flex; flex-direction: column; gap: 12px; }
+    /* 5지 선다 옵션 버튼 스타일 */
+    .options { display: flex; flex-direction: column; gap: 10px; }
     .option-btn {
-      padding: 16px; border: 2px solid #e2e8f0; border-radius: 16px; background: white;
-      font-size: 1rem; cursor: pointer; transition: all 0.2s; text-align: left; color: #475569; font-weight: 500;
+      padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; background: white;
+      font-size: 0.95rem; cursor: pointer; transition: all 0.2s; text-align: left; color: #475569; font-weight: 500;
       position: relative; overflow: hidden;
     }
     .option-btn:hover { border-color: var(--primary); background: #eef2ff; color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
@@ -42,28 +43,27 @@
     /* 결과 화면 */
     #resultBox { display: none; text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .badge { display: inline-block; padding: 8px 16px; background: #eef2ff; color: var(--primary); border-radius: 30px; font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; border: 1px solid #c7d2fe; }
-    .result-name { font-size: 2rem; margin: 0 0 20px 0; color: #1e293b; font-weight: 800; line-height: 1.2; word-break: keep-all; }
+    .result-name { font-size: 1.8rem; margin: 0 0 20px 0; color: #1e293b; font-weight: 800; line-height: 1.3; word-break: keep-all; }
     
+    /* 차트 영역 */
     .chart-container { position: relative; height: 250px; width: 100%; margin: 20px auto; }
     
-    /* 미션 카드 스타일 */
-    .mission-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; text-align: left; margin-top: 24px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
-    .mission-title { font-size: 1.1rem; font-weight: 700; color: #334155; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-    .mission-content { font-size: 0.95rem; color: #475569; line-height: 1.6; }
-    .highlight { color: var(--primary); font-weight: 700; background: rgba(99, 102, 241, 0.1); padding: 2px 6px; border-radius: 4px; }
+    /* 결과 텍스트 카드 (기존 내용 + 신규 디자인) */
+    .result-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; text-align: left; margin-top: 24px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+    .card-item { margin-bottom: 12px; }
+    .card-label { font-size: 0.9rem; color: #64748b; font-weight: 700; display: block; margin-bottom: 4px; }
+    .card-value { font-size: 1rem; color: #334155; line-height: 1.5; font-weight: 500; }
+    .highlight { color: var(--primary); font-weight: 700; }
 
     /* 비밀번호 입력 */
     .password-section { margin: 30px 0; text-align: center; }
-    .pw-input { width: 70%; padding: 14px; font-size: 18px; border: 2px solid #cbd5e1; border-radius: 12px; outline: none; text-align: center; letter-spacing: 4px; transition: border 0.3s; background: #f8fafc; }
+    .pw-input { width: 60%; padding: 14px; font-size: 18px; border: 2px solid #cbd5e1; border-radius: 12px; outline: none; text-align: center; letter-spacing: 4px; transition: border 0.3s; background: #f8fafc; }
     .pw-input:focus { border-color: var(--primary); background: white; }
     .pw-desc { font-size: 0.85rem; color: #94a3b8; margin-top: 10px; }
 
     .start-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; border-radius: 16px; font-size: 1.1rem; cursor: pointer; font-weight: 700; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: transform 0.2s; }
     .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
-
-    /* 공유 버튼 */
     .share-btn { margin-top: 15px; background: white; color: var(--primary); border: 2px solid var(--primary); }
-    .share-btn:hover { background: #eef2ff; transform: translateY(-2px); }
 
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -76,16 +76,16 @@
   <div id="intro">
     <h1>🚀 대학생 투자 성향 리포트</h1>
     <p class="subtitle">
-      나는 워렌 버핏일까, 아니면 예금 지킴이일까?<br>
-      에듀테크 AI가 당신의 투자 DNA를 분석합니다.
+      10가지 질문을 통해 당신에게 딱 맞는<br>
+      에듀테크 투자 학습법을 알아보세요.
     </p>
 
     <div class="password-section">
       <input type="password" id="passwordInput" class="pw-input" placeholder="••••" maxlength="4">
-      <p class="pw-desc">🔒 강의자가 공지한 코드를 입력하세요.</p>
+      <p class="pw-desc">🔒 강의자가 공지한 비밀번호를 입력하시오.</p>
     </div>
 
-    <button class="start-btn" onclick="checkPasswordAndStart()">분석 시작하기</button>
+    <button class="start-btn" onclick="checkPasswordAndStart()">진단 시작하기</button>
   </div>
 
   <div id="quiz" style="display:none;">
@@ -100,40 +100,46 @@
 
   <div id="resultBox">
     <span class="badge">MY INVESTMENT TYPE</span>
-    <h1 class="result-name" id="resultName"></h1>
-    <p id="resultDesc" style="color:#64748b; margin-bottom:10px; font-weight:500;"></p>
+    <h1 class="result-name" id="resultType"></h1>
     
     <div class="chart-container">
       <canvas id="resultChart"></canvas>
     </div>
 
-    <div class="mission-card">
-      <div class="mission-title">🎓 이번 주 대학생 금융 미션</div>
-      <div class="mission-content" id="missionContent"></div>
+    <div class="result-card">
+      <div class="card-item">
+        <span class="card-label">🎁 추천 상품</span>
+        <div class="card-value highlight" id="resultProduct"></div>
+      </div>
+      <div class="card-item" style="margin-bottom:0;">
+        <span class="card-label">💡 투자 조언</span>
+        <div class="card-value" id="resultAdvice"></div>
+      </div>
     </div>
 
     <div style="display:flex; gap:10px; margin-top:20px;">
-      <button class="start-btn share-btn" onclick="copyResult()">결과 공유하기</button>
+      <button class="start-btn share-btn" onclick="copyResult()">결과 공유</button>
       <button class="start-btn" onclick="location.reload()">다시 하기</button>
     </div>
   </div>
 </div>
 
 <script>
+  // 🔑 비밀번호 설정
   const CORRECT_PASSWORD = "1234"; 
 
-  // 대학생 맞춤형 질문 (이전 질문 유지하되 어조 수정)
+  // 질문 데이터 (기존 10문항 복구)
   const questions = [
-    { t: "알바비 50만원이 생겼다. 나는?", a: ["무조건 안전한 예금 통장에 넣는다.", "일부는 코인이나 주식에 도전해본다."], cat: "risk" },
-    { t: "주식 앱을 켰는데 -10% 파란불이다. 나의 반응은?", a: ["가슴이 철렁하고 하루종일 우울하다.", "오히려 좋아! 저점 매수의 기회다."], cat: "risk" },
-    { t: "친구들이 '이거 뜬대!' 하며 밈코인을 추천한다.", a: ["위험해 보여서 절대 쳐다보지 않는다.", "소액으로 재미 삼아 같이 탑승한다."], cat: "risk" },
-    { t: "맛집을 고를 때 나는?", a: ["리뷰 1000개 이상 검증된 곳만 간다.", "새로 생긴 힙한 곳을 내가 먼저 가본다."], cat: "exp" },
-    { t: "여행 계획을 짤 때 나는?", a: ["분 단위로 엑셀에 정리한다.", "비행기 표만 끊고 가서 생각한다."], cat: "exp" },
-    { t: "평소 유튜브 알고리즘에 뜨는 영상은?", a: ["재미있는 예능이나 쇼츠", "경제 뉴스나 재테크, 지식 채널"], cat: "study" },
-    { t: "전공 수업 외에 다른 분야 공부는?", a: ["전공 하나 하기도 벅차다.", "관심 생기면 이것저것 찾아서 배운다."], cat: "exp" },
-    { t: "만원 더 싼데 30분 더 걸리는 버스 vs 그냥 택시", a: ["몸이 힘들어도 돈 아끼는 게 최고다.", "내 시간과 체력은 돈보다 소중하다."], cat: "study" },
-    { t: "조별과제 중 빌런을 만났다. 나는?", a: ["화나지만 꾹 참고 내가 다 한다.", "감정 배제하고 팩트로 조목조목 따진다."], cat: "study" },
-    { t: "모르는 경제 용어가 나왔을 때", a: ["그냥 그런가보다 하고 넘긴다.", "당장 검색해서 무슨 뜻인지 알아낸다."], cat: "study" }
+    { t: "나는 평소 익숙하고 안전한 길보다는 새로운 도전을 통해 얻는 성과를 중요하게 생각한다.", cat: "risk" },
+    { t: "중요한 시험이나 발표를 망쳤을 때, 쉽게 좌절하지 않고 다음 기회를 준비하는 편이다.", cat: "risk" },
+    { t: "어떤 일을 시작할 때, 장기간에 걸쳐 꾸준히 노력하는 것보다 빠른 시간 내에 성과를 내는 것을 선호한다.", cat: "risk" },
+    { t: "식당이나 메뉴를 선택할 때, 이미 검증된 곳보다는 새로운 맛집을 찾아다니는 것을 즐긴다.", cat: "exp" },
+    { t: "나는 계획을 세우기 보단 즉흥적으로 움직이는 것을 즐긴다.", cat: "exp" },
+    { t: "여가 시간에 주로 새로운 지식을 배우거나 복잡한 정보를 분석하는 활동에 흥미를 느낀다.", cat: "study" },
+    { t: "한 분야의 전문가가 되는 것보다, 여러 분야에 걸쳐 폭넓게 경험하는 것을 중요하게 생각한다.", cat: "exp" },
+    { t: "편리하지만 이득이 적은 것과 불편하지만 이득이 많은 것이 있다면 이득을 우선시 한다.", cat: "study" },
+    { t: "감정적인 충격을 받았을 때, 감정에 휩쓸리기보다 이성적으로 상황을 판단하려고 노력한다.", cat: "study" },
+    { t: "나는 모르는 분야에 대해 스스로 공부하고 정보를 찾아내는 것에 시간을 쓰는 것을 좋아한다.", cat: "study" }
   ];
 
   let currentStep = 0;
@@ -145,7 +151,7 @@
     if (input === CORRECT_PASSWORD) {
       startSurvey();
     } else {
-      alert("⚠️ 코드가 올바르지 않습니다.");
+      alert("비밀번호가 틀립니다. 다시 시도하십시오.");
       document.getElementById("passwordInput").value = "";
       document.getElementById("passwordInput").focus();
     }
@@ -164,13 +170,20 @@
     const percent = ((currentStep) / questions.length) * 100;
     document.getElementById('progressBar').style.width = percent + '%';
 
-    // 2지 선다형으로 간소화하여 속도감 높임 (점수 배분: 1번=1점, 2번=5점 단순화)
+    // 5지 선다 버튼 생성
+    let optionsHTML = '';
+    const labels = ["매우 그렇지 않다 (1점)", "그렇지 않다 (2점)", "보통이다 (3점)", "그렇다 (4점)", "매우 그렇다 (5점)"];
+    
+    labels.forEach((label, index) => {
+        const score = index + 1;
+        optionsHTML += `<button class="option-btn" onclick="next(${score}, '${q.cat}')">${label}</button>`;
+    });
+
     const qHTML = `
       <div class="question-box active">
-        <h2>Q${currentStep + 1}. ${q.t}</h2>
+        <h2>Q${currentStep + 1}.<br>${q.t}</h2>
         <div class="options">
-          <button class="option-btn" onclick="next(1, '${q.cat}')">🅰️ ${q.a[0]}</button>
-          <button class="option-btn" onclick="next(5, '${q.cat}')">🅱️ ${q.a[1]}</button>
+          ${optionsHTML}
         </div>
       </div>
     `;
@@ -185,7 +198,7 @@
     if (currentStep < questions.length) {
       renderQuestion();
     } else {
-      showLoading(); // 로딩 화면 호출
+      showLoading();
     }
   }
 
@@ -195,9 +208,9 @@
     const text = document.getElementById('loadingText');
     loading.style.display = 'block';
 
-    // 로딩 멘트 변경 (재미 요소)
+    // 로딩 멘트
     setTimeout(() => text.innerText = "💰 투자 성향 분석 중...", 800);
-    setTimeout(() => text.innerText = "🧠 뇌 구조 스캔 완료!", 1800);
+    setTimeout(() => text.innerText = "📊 데이터 시각화 중...", 1800);
     setTimeout(() => {
       loading.style.display = 'none';
       showResult();
@@ -207,55 +220,38 @@
   function showResult() {
     document.getElementById('resultBox').style.display = 'block';
 
-    let name, desc, mission;
-    
-    // 캐릭터 & 미션 설정 (대학생 타겟팅)
+    // 기존 로직과 텍스트 사용
+    let type="", product="", advice="";
     if (totalScore <= 20) {
-        name = "🐿️ 소확행 저축 다람쥐";
-        desc = "\"원금 절대 지켜!\" 안전이 제일 중요해요.";
-        mission = `
-          <p><strong>추천 상품:</strong> 파킹통장, 청년도약계좌</p>
-          <p style='margin-top:8px;'><strong>🎯 Action Item:</strong><br>
-          변동성이 무서운 당신! 하지만 물가상승률은 이겨야 해요.<br>
-          <span class='highlight'>CMA 통장 개설</span>해서 하루만 넣어도 이자 받아보기 미션을 수행해보세요!</p>`;
+      type="안정형 (Stability Focus)";
+      product="예금";
+      advice="안정 최우선: 원금 보장과 확정 금리를 기반으로 자산을 모으세요.";
     } else if (totalScore <= 30) {
-        name = "🏗️ 차곡차곡 빌드업 장인";
-        desc = "\"티끌 모아 태산!\" 계획적인 투자를 선호해요.";
-        mission = `
-          <p><strong>추천 상품:</strong> 적립식 펀드, 채권</p>
-          <p style='margin-top:8px;'><strong>🎯 Action Item:</strong><br>
-          성실함이 무기인 당신! 이제는 '자산 배분'을 배울 때입니다.<br>
-          유튜브에 <span class='highlight'>'올웨더 포트폴리오'</span>를 검색해서 영상 1개 시청하기가 이번 주 숙제입니다.</p>`;
+      type="안정 추구형 (Goal-Oriented)";
+      product="적금";
+      advice="계획적 성장: 꾸준한 저축을 통해 재정 목표를 달성하세요.";
     } else if (totalScore <= 40) {
-        name = "🏄 파도를 타는 트렌드 세터";
-        desc = "\"요즘 이게 뜬대!\" 시장의 흐름을 잘 읽어요.";
-        mission = `
-          <p><strong>추천 상품:</strong> ETF, 미국 우량주</p>
-          <p style='margin-top:8px;'><strong>🎯 Action Item:</strong><br>
-          감각이 좋은 당신! 하지만 '감'에만 의존하면 위험해요.<br>
-          <span class='highlight'>'S&P 500 ETF'</span>가 무엇인지 찾아보고 모의투자로 1주 매수해보세요.</p>`;
+      type="위험 중립형 (Market Follower)";
+      product="ETF";
+      advice="균형 투자: 분산을 통해 안정성과 시장 평균 수익을 추구하세요.";
     } else {
-        name = "🦁 야수의 심장 로켓맨";
-        desc = "\"인생은 한방!\" 높은 수익을 위해 위험도 감수해요.";
-        mission = `
-          <p><strong>추천 상품:</strong> 성장주, 암호화폐</p>
-          <p style='margin-top:8px;'><strong>🎯 Action Item:</strong><br>
-          용기 있는 당신! 하지만 브레이크 없는 스포츠카는 위험하죠.<br>
-          <span class='highlight'>'손절매(Stop-loss)'</span> 기준을 정하는 법을 공부해서 나만의 원칙을 세워보세요.</p>`;
+      type="공격형 (Aggressive Growth)";
+      product="주식";
+      advice="분석 기반의 공격적 투자로 자산 증식을 시도하세요.";
     }
 
-    document.getElementById('resultName').innerText = name;
-    document.getElementById('resultDesc').innerText = desc;
-    document.getElementById('missionContent').innerHTML = mission;
+    document.getElementById("resultType").textContent = type;
+    document.getElementById("resultProduct").textContent = product;
+    document.getElementById("resultAdvice").textContent = advice;
 
-    // 차트 생성
+    // 차트 생성 (기존 레이더 차트)
     const ctx = document.getElementById('resultChart').getContext('2d');
     new Chart(ctx, {
       type: 'radar',
       data: {
-        labels: ['위험 감수력', '금융 지식욕', '경험 개방성'],
+        labels: ['위험 감수(Risk)', '학습 성향(Study)', '경험 중시(Exp)'],
         datasets: [{
-          label: '나의 능력치',
+          label: '나의 성향',
           data: [scores.risk, scores.study, scores.exp],
           backgroundColor: 'rgba(99, 102, 241, 0.2)',
           borderColor: '#6366f1',
@@ -271,7 +267,9 @@
             angleLines: { color: 'rgba(0,0,0,0.1)' },
             grid: { color: 'rgba(0,0,0,0.05)' },
             pointLabels: { font: { size: 12, weight: 'bold', family: 'Pretendard' }, color: '#475569' },
-            ticks: { display: false, max: 20 }
+            beginAtZero: true,
+            max: 20, // 문항수에 따른 최대 점수 조정
+            ticks: { display: false }
           }
         },
         plugins: { legend: { display: false } }
@@ -280,14 +278,14 @@
   }
 
   function copyResult() {
-    const name = document.getElementById('resultName').innerText;
+    const type = document.getElementById('resultType').innerText;
     const dummy = document.createElement("textarea");
     document.body.appendChild(dummy);
-    dummy.value = `[대학생 투자 성향 리포트]\n나의 유형은: ${name}\n\n같이 테스트 해볼래?`;
+    dummy.value = `[대학생 투자 성향 리포트]\n나의 유형은: ${type}\n\n같이 테스트 해볼래\n\nhttps://b30m.github.io/edutech/?`;
     dummy.select();
     document.execCommand("copy");
     document.body.removeChild(dummy);
-    alert("결과가 복사되었습니다! 단톡방에 공유해보세요 😆");
+    alert("결과가 복사되었습니다!");
   }
 </script>
 
