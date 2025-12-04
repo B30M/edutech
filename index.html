@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나의 투자 성향 분석</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root { --primary: #4F46E5; --bg: #F3F4F6; }
+    body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .container { width: 100%; max-width: 420px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin: 20px; position: relative; overflow: hidden; }
+    
+    /* 진행바 */
+    .progress-container { width: 100%; background: #e0e0e0; height: 6px; border-radius: 3px; margin-bottom: 20px; }
+    .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; border-radius: 3px; }
+
+    /* 질문 카드 */
+    .question-box { display: none; animation: fadeIn 0.5s; }
+    .question-box.active { display: block; }
+    h2 { font-size: 1.4rem; color: #333; margin-bottom: 20px; line-height: 1.4; }
+    
+    /* 선택 버튼 */
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option-btn {
+      padding: 15px; border: 2px solid #e5e7eb; border-radius: 12px; background: white;
+      font-size: 1rem; cursor: pointer; transition: all 0.2s; text-align: left;
+    }
+    .option-btn:hover, .option-btn:active { border-color: var(--primary); background: #EEF2FF; color: var(--primary); font-weight: bold; }
+
+    /* 결과 화면 */
+    #resultBox { display: none; text-align: center; }
+    .result-tag { display: inline-block; padding: 6px 12px; background: #EEF2FF; color: var(--primary); border-radius: 20px; font-weight: bold; margin-bottom: 10px; }
+    .result-title { font-size: 1.8rem; margin: 10px 0; color: #111; }
+    .chart-container { margin: 20px 0; }
+    .advice-box { background: #F9FAFB; padding: 15px; border-radius: 10px; text-align: left; font-size: 0.95rem; color: #555; line-height: 1.6; margin-top: 15px;}
+    
+    /* 애니메이션 */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .start-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; cursor: pointer; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="intro">
+    <h1 style="text-align:center;">💰 투자 성향 진단</h1>
+    <p style="text-align:center; color:#666; margin-bottom:30px;">
+      10가지 질문을 통해 당신에게 딱 맞는<br>에듀테크 투자 학습법을 알아보세요.
+    </p>
+    <button class="start-btn" onclick="startSurvey()">진단 시작하기</button>
+  </div>
+
+  <div id="quiz" style="display:none;">
+    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+    <div id="questionContainer"></div>
+  </div>
+
+  <div id="resultBox">
+    <span class="result-tag" id="resultTypeSub">분석 완료</span>
+    <h1 class="result-title" id="resultType"></h1>
+    
+    <div class="chart-container">
+      <canvas id="resultChart"></canvas>
+    </div>
+
+    <p id="resultProduct" style="font-weight:bold; color:#4F46E5;"></p>
+    
+    <div class="advice-box">
+      <strong>💡 맞춤형 학습 조언:</strong><br>
+      <span id="resultAdvice"></span>
+    </div>
+
+    <button class="start-btn" style="margin-top:20px; background:#333;" onclick="location.reload()">다시 하기</button>
+  </div>
+</div>
+
+<script>
+  // 질문 데이터 (기존 내용 활용 + 카테고리 추가)
+  // category: 1=도전/위험감수, 2=학습/분석, 3=경험/직관 (차트용 가상 분류)
+  const questions = [
+    { t: "익숙한 길보다 새로운 도전을 통해 얻는 성과가 더 중요하다.", cat: "risk" },
+    { t: "실패해도 좌절하지 않고 다음 기회를 빠르게 준비한다.", cat: "risk" },
+    { t: "장기적 노력보다 단기간의 빠른 성과를 선호한다.", cat: "risk" },
+    { t: "검증된 맛집보다 새로운 식당을 찾아다니는 것을 즐긴다.", cat: "exp" },
+    { t: "계획보다는 즉흥적으로 움직이는 것을 즐긴다.", cat: "exp" },
+    { t: "여가 시간에 새로운 지식을 배우거나 분석하는 걸 좋아한다.", cat: "study" },
+    { t: "한 분야 전문가보다 다양한 분야의 폭넓은 경험을 중시한다.", cat: "exp" },
+    { t: "불편하더라도 이득이 더 많은 쪽을 무조건 선택한다.", cat: "study" },
+    { t: "감정적 충격 상황에서도 이성적으로 판단하려 노력한다.", cat: "study" },
+    { t: "모르는 분야에 대해 스스로 정보를 찾아 공부하는 걸 즐긴다.", cat: "study" }
+  ];
+
+  let currentStep = 0;
+  let scores = { risk: 0, study: 0, exp: 0 }; // 카테고리별 점수
+  let totalScore = 0;
+
+  function startSurvey() {
+    document.getElementById('intro').style.display = 'none';
+    document.getElementById('quiz').style.display = 'block';
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const container = document.getElementById('questionContainer');
+    container.innerHTML = '';
+    
+    const q = questions[currentStep];
+    const percent = ((currentStep) / questions.length) * 100;
+    document.getElementById('progressBar').style.width = percent + '%';
+
+    const qHTML = `
+      <div class="question-box active">
+        <h2>Q${currentStep + 1}.<br>${q.t}</h2>
+        <div class="options">
+          <button class="option-btn" onclick="next(1, '${q.cat}')">매우 그렇지 않다 (1점)</button>
+          <button class="option-btn" onclick="next(2, '${q.cat}')">그렇지 않다 (2점)</button>
+          <button class="option-btn" onclick="next(3, '${q.cat}')">보통이다 (3점)</button>
+          <button class="option-btn" onclick="next(4, '${q.cat}')">그렇다 (4점)</button>
+          <button class="option-btn" onclick="next(5, '${q.cat}')">매우 그렇다 (5점)</button>
+        </div>
+      </div>
+    `;
+    container.innerHTML = qHTML;
+  }
+
+  function next(score, category) {
+    totalScore += score;
+    scores[category] += score; // 차트용 점수 누적
+    
+    currentStep++;
+    if (currentStep < questions.length) {
+      renderQuestion();
+    } else {
+      showResult();
+    }
+  }
+
+  function showResult() {
+    document.getElementById('quiz').style.display = 'none';
+    document.getElementById('resultBox').style.display = 'block';
+
+    let type, product, advice;
+    if (totalScore <= 20) {
+        type = "안정형 (Stability Focus)";
+        product = "추천 상품: 예금, 국채";
+        advice = "원금 보장이 최우선입니다. 금융 이해도를 높이는 기초 강의부터 수강해보세요.";
+    } else if (totalScore <= 30) {
+        type = "안정 추구형 (Goal-Oriented)";
+        product = "추천 상품: 적금, 채권 혼합형 펀드";
+        advice = "목표 달성을 위해 꾸준함이 중요합니다. 자산 배분 시뮬레이션을 통해 포트폴리오 감각을 익히세요.";
+    } else if (totalScore <= 40) {
+        type = "위험 중립형 (Market Follower)";
+        product = "추천 상품: ETF, 배당주";
+        advice = "시장 흐름을 잘 읽으시는군요. 실시간 시장 데이터를 분석하는 툴을 활용해 투자를 고도화하세요.";
+    } else {
+        type = "공격형 (Aggressive Growth)";
+        product = "추천 상품: 주식, 암호화폐, 파생상품";
+        advice = "하이 리스크, 하이 리턴! 하지만 감보다 데이터가 중요합니다. 알고리즘 트레이딩이나 차트 분석 심화 과정을 추천합니다.";
+    }
+
+    document.getElementById('resultType').innerText = type;
+    document.getElementById('resultProduct').innerText = product;
+    document.getElementById('resultAdvice').innerText = advice;
+
+    // 차트 그리기 (Radar Chart)
+    const ctx = document.getElementById('resultChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['위험 감수(Risk)', '학습 성향(Study)', '경험 중시(Exp)'],
+        datasets: [{
+          label: '나의 성향',
+          data: [scores.risk, scores.study, scores.exp],
+          backgroundColor: 'rgba(79, 70, 229, 0.2)',
+          borderColor: '#4F46E5',
+          pointBackgroundColor: '#4F46E5',
+        }]
+      },
+      options: {
+        scales: {
+          r: {
+            beginAtZero: true,
+            max: 20, // 문항 수에 따라 조절 (여기선 대략적인 최대치)
+            ticks: { display: false } // 눈금 숫자 숨김
+          }
+        }
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
