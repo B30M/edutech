@@ -44,8 +44,19 @@
       font-size: 0.95rem; cursor: pointer; transition: all 0.2s; text-align: left; color: #475569; font-weight: 500;
       position: relative; overflow: hidden;
     }
-    .option-btn:hover { border-color: var(--primary); background: #eef2ff; color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
+    /* [★수정됨] 클릭 시 스타일을 selected 클래스로 분리 */
+    .option-btn.selected {
+        border-color: var(--primary);
+        background: #eef2ff;
+        color: var(--primary);
+        font-weight: bold;
+        transform: scale(0.99); 
+        box-shadow: 0 1px 4px rgba(99, 102, 241, 0.2);
+    }
+    /* hover/active 스타일은 잔상 방지를 위해 간결하게 유지 */
+    .option-btn:hover { border-color: #a5b4fc; background: #f0f4ff; }
     .option-btn:active { transform: scale(0.98); }
+
 
     /* 로딩 화면 */
     #loadingScreen { display: none; text-align: center; padding: 40px 0; }
@@ -218,12 +229,15 @@
     { t: "한 분야 전문가보다 다양한 분야의 폭넓은 경험을 중시한다.", cat: "exp" },
     { t: "불편하더라도 이득이 더 많은 쪽을 무조건 선택한다.", cat: "study" },
     { t: "감정적 충격 상황에서도 이성적으로 판단하려 노력한다.", cat: "study" },
-    { t: "모르는 분야에 대해 스스로 정보를 찾아 공부하는 걸 즐긴다.", cat: "study" }
+    { t: "모르는 분야에 대해 스스로 공부하고 정보를 찾아내는 것에 시간을 쓰는 것을 좋아한다.", cat: "study" }
   ];
 
   let currentStep = 0;
   let scores = { risk: 0, study: 0, exp: 0 }; 
   let totalScore = 0;
+
+  // [★수정됨] 현재 선택된 버튼 객체를 저장하는 변수 (스타일 잔상 해결용)
+  let selectedButton = null; 
 
   function checkPasswordAndStart() {
     const input = document.getElementById("passwordInput").value;
@@ -244,6 +258,12 @@
 
   function renderQuestion() {
     const container = document.getElementById('questionContainer');
+    // [★수정됨] 이전 질문의 선택 스타일 제거
+    if (selectedButton) {
+        selectedButton.classList.remove('selected');
+        selectedButton = null;
+    }
+    
     container.innerHTML = '';
     const q = questions[currentStep];
     const percent = ((currentStep) / questions.length) * 100;
@@ -254,7 +274,8 @@
     
     labels.forEach((label, index) => {
         const score = index + 1;
-        optionsHTML += `<button class="option-btn" onclick="next(${score}, '${q.cat}')">${label}</button>`;
+        // 버튼 클릭 시 nextWithStyle 함수 호출
+        optionsHTML += `<button class="option-btn" onclick="nextWithStyle(this, ${score}, '${q.cat}')">${label}</button>`;
     });
 
     const qHTML = `
@@ -266,6 +287,24 @@
       </div>
     `;
     container.innerHTML = qHTML;
+  }
+
+  // [★추가] 버튼 선택 시 스타일 적용 및 다음 질문으로 이동
+  function nextWithStyle(button, score, category) {
+      // 이전에 선택된 버튼의 스타일 제거 (단일 선택 강제)
+      const optionsContainer = button.closest('.options');
+      optionsContainer.querySelectorAll('.option-btn').forEach(btn => {
+          btn.classList.remove('selected');
+      });
+      
+      // 현재 버튼에 스타일 적용
+      button.classList.add('selected');
+      selectedButton = button; 
+
+      // 0.2초 후 다음 질문으로 이동 (시각적 피드백 시간 확보)
+      setTimeout(() => {
+          next(score, category);
+      }, 200);
   }
 
   function next(score, category) {
