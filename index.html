@@ -10,7 +10,7 @@
     :root { --primary: #6366f1; --accent: #8b5cf6; --bg: #f8fafc; }
     body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
     
-    /* 컨테이너 - 좌우 마진 16px 추가 */
+    /* [★수정됨] 컨테이너 - 좌우 마진 16px 추가 */
     .container { 
       width: 90%; 
       max-width: 420px; 
@@ -152,7 +152,7 @@
   </div>
 
   <div id="quiz" style="display:none;">
-    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="progress-container" id="progressContainer"><div class="progress-bar" id="progressBar"></div></div>
     <div id="questionContainer"></div>
   </div>
 
@@ -210,6 +210,16 @@
       lastTouchEnd = now;
   }, false);
 
+  // [★추가] 진행바에 임의로 touchend 이벤트를 발생시키는 함수
+  function simulateTouchEnd() {
+      const neutralElement = document.getElementById('progressContainer');
+      if (neutralElement) {
+          // bubbles: true는 이벤트가 상위 요소로 전파되도록 함 (잔상 해제에 도움)
+          const event = new Event('touchend', {bubbles: true}); 
+          neutralElement.dispatchEvent(event);
+      }
+  }
+
 
   // 🔑 비밀번호
   const CORRECT_PASSWORD = "1208"; 
@@ -251,8 +261,6 @@
 
   function renderQuestion() {
     const container = document.getElementById('questionContainer');
-    // [★수정됨] 이전 질문의 선택 스타일 제거 및 포커스 강제 해제 (핵심)
-    // selectedButton이 필요 없어졌으므로, nextWithStyle 함수가 이 역할을 함.
     
     container.innerHTML = '';
     const q = questions[currentStep];
@@ -264,7 +272,6 @@
     
     labels.forEach((label, index) => {
         const score = index + 1;
-        // nextWithStyle 함수를 호출하도록 수정
         optionsHTML += `<button class="option-btn" onclick="nextWithStyle(this, ${score}, '${q.cat}')">${label}</button>`;
     });
 
@@ -281,7 +288,7 @@
 
   // [★수정됨] 스타일 적용 및 다음 질문으로 이동하는 함수
   function nextWithStyle(button, score, category) {
-      // 1. 이전 선택 스타일 제거 (단일 선택 강제)
+      // 1. 이전 선택 스타일 제거 (클릭 피드백이 겹치는 것 방지)
       const optionsContainer = button.closest('.options');
       optionsContainer.querySelectorAll('.option-btn').forEach(btn => {
           btn.classList.remove('selected');
@@ -295,6 +302,9 @@
           // 다음 화면으로 넘어가기 전 스타일 제거 및 포커스 해제
           button.classList.remove('selected');
           button.blur(); 
+          
+          // [★추가] 진행바 터치 시뮬레이션으로 잔상 강제 제거
+          simulateTouchEnd(); 
 
           next(score, category);
       }, 200);
@@ -360,7 +370,7 @@
 
     document.getElementById("resultBadge").textContent = badgeText;
     document.getElementById("resultTitle").textContent = titleText;
-    document.getElementById("resultDesc").innerHTML = descText; /* innerHTML로 변경 */
+    document.getElementById("resultDesc").innerHTML = descText;
     document.getElementById("resultProduct").textContent = product;
     document.getElementById("resultAdvice").textContent = advice;
 
