@@ -10,7 +10,7 @@
     :root { --primary: #6366f1; --accent: #8b5cf6; --bg: #f8fafc; }
     body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
     
-    /* [★수정됨] 컨테이너 - 좌우 마진 16px 추가 */
+    /* 컨테이너 - 좌우 마진 16px 추가 */
     .container { 
       width: 90%; 
       max-width: 420px; 
@@ -44,7 +44,7 @@
       font-size: 0.95rem; cursor: pointer; transition: all 0.2s; text-align: left; color: #475569; font-weight: 500;
       position: relative; overflow: hidden;
     }
-    /* [★잔상 해결용] 클릭 시 스타일 */
+    /* 클릭 시 스타일 */
     .option-btn.selected {
         border-color: var(--primary);
         background: #eef2ff;
@@ -196,17 +196,14 @@
 
 <script>
   // [★추가] 모바일 더블 탭(Zoom) 및 핀치 줌 방지 스크립트
-  // 1. 더블 클릭 이벤트 방지
   document.addEventListener('dblclick', function(e) {
       e.preventDefault();
       e.stopPropagation();
   }, false);
 
-  // 2. 터치 끝 이벤트(touchend)를 이용해 더블 탭 줌 방지 (iOS 등)
   let lastTouchEnd = 0;
   document.addEventListener('touchend', function (event) {
       const now = (new Date()).getTime();
-      // 300ms 이내 두 번 탭 방지
       if (now - lastTouchEnd <= 300) {
           event.preventDefault();
       }
@@ -234,8 +231,6 @@
   let currentStep = 0;
   let scores = { risk: 0, study: 0, exp: 0 }; 
   let totalScore = 0;
-  // [★추가됨] 현재 선택된 버튼 객체를 저장하는 변수 (스타일 잔상 해결용)
-  let selectedButton = null; 
 
   function checkPasswordAndStart() {
     const input = document.getElementById("passwordInput").value;
@@ -257,12 +252,7 @@
   function renderQuestion() {
     const container = document.getElementById('questionContainer');
     // [★수정됨] 이전 질문의 선택 스타일 제거 및 포커스 강제 해제 (핵심)
-    if (selectedButton) {
-        selectedButton.classList.remove('selected');
-        // 브라우저가 버튼의 :active/:hover 상태를 잊도록 강제 blur 처리
-        selectedButton.blur(); 
-        selectedButton = null;
-    }
+    // selectedButton이 필요 없어졌으므로, nextWithStyle 함수가 이 역할을 함.
     
     container.innerHTML = '';
     const q = questions[currentStep];
@@ -289,20 +279,23 @@
     container.innerHTML = qHTML;
   }
 
-  // [★추가] 스타일 적용 및 다음 질문으로 이동하는 함수
+  // [★수정됨] 스타일 적용 및 다음 질문으로 이동하는 함수
   function nextWithStyle(button, score, category) {
-      // 이전에 선택된 버튼의 스타일 제거 (클릭 피드백이 겹치는 것 방지)
+      // 1. 이전 선택 스타일 제거 (단일 선택 강제)
       const optionsContainer = button.closest('.options');
       optionsContainer.querySelectorAll('.option-btn').forEach(btn => {
           btn.classList.remove('selected');
       });
       
-      // 현재 버튼에 스타일 적용
+      // 2. 현재 버튼에 스타일 적용
       button.classList.add('selected');
-      selectedButton = button; 
 
-      // 0.2초 후 다음 질문으로 이동 (시각적 피드백 시간 확보)
+      // 3. 0.2초 후 다음 질문으로 이동 및 스타일 즉시 제거 (잔상 방지)
       setTimeout(() => {
+          // 다음 화면으로 넘어가기 전 스타일 제거 및 포커스 해제
+          button.classList.remove('selected');
+          button.blur(); 
+
           next(score, category);
       }, 200);
   }
