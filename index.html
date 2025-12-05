@@ -10,7 +10,7 @@
     :root { --primary: #6366f1; --accent: #8b5cf6; --bg: #f8fafc; }
     body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
     
-    /* [★수정됨] 컨테이너 - 좌우 마진 16px 추가 */
+    /* 컨테이너 - 좌우 마진 16px 추가 */
     .container { 
       width: 90%; 
       max-width: 420px; 
@@ -21,7 +21,7 @@
       backdrop-filter: blur(10px); 
       position: relative; 
       overflow: hidden; 
-      margin: 20px 16px; /* 상하 20px, 좌우 16px 마진 추가 */
+      margin: 20px 16px; 
     }
     
     /* 타이틀 */
@@ -43,8 +43,11 @@
       padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; background: white;
       font-size: 0.95rem; cursor: pointer; transition: all 0.2s; text-align: left; color: #475569; font-weight: 500;
       position: relative; overflow: hidden;
+      /* [★수정됨] 잔상 유발 CSS 무력화 또는 제거 */
+      -webkit-tap-highlight-color: transparent; /* iOS 탭 하이라이트 제거 */
     }
-    /* 클릭 시 스타일 */
+    
+    /* [★수정됨] 클릭 시 스타일 (JavaScript 제어) */
     .option-btn.selected {
         border-color: var(--primary);
         background: #eef2ff;
@@ -53,7 +56,7 @@
         transform: scale(0.99); 
         box-shadow: 0 1px 4px rgba(99, 102, 241, 0.2);
     }
-    /* hover/active 스타일은 잔상 방지를 위해 간결하게 유지 */
+    /* hover/active 스타일 잔상 방지를 위해 최소화 */
     .option-btn:hover { border-color: #a5b4fc; background: #f0f4ff; }
     .option-btn:active { transform: scale(0.98); }
 
@@ -210,16 +213,6 @@
       lastTouchEnd = now;
   }, false);
 
-  // [★추가] 진행바에 임의로 touchend 이벤트를 발생시키는 함수
-  function simulateTouchEnd() {
-      const neutralElement = document.getElementById('progressContainer');
-      if (neutralElement) {
-          // bubbles: true는 이벤트가 상위 요소로 전파되도록 함 (잔상 해제에 도움)
-          const event = new Event('touchend', {bubbles: true}); 
-          neutralElement.dispatchEvent(event);
-      }
-  }
-
 
   // 🔑 비밀번호
   const CORRECT_PASSWORD = "1208"; 
@@ -268,7 +261,7 @@
     document.getElementById('progressBar').style.width = percent + '%';
 
     let optionsHTML = '';
-    const labels = ["매우 그렇지 않다 (1점)", "그렇지 않다 (2점)", "보통이다 (3점)", "그렇다 (4점)", "매우 그렇다 (5점)"];
+    const labels = ["매우 그렇지 않다", "그렇지 않다", "보통이다", "그렇다", "매우 그렇다"];
     
     labels.forEach((label, index) => {
         const score = index + 1;
@@ -302,9 +295,6 @@
           // 다음 화면으로 넘어가기 전 스타일 제거 및 포커스 해제
           button.classList.remove('selected');
           button.blur(); 
-          
-          // [★추가] 진행바 터치 시뮬레이션으로 잔상 강제 제거
-          simulateTouchEnd(); 
 
           next(score, category);
       }, 200);
@@ -370,7 +360,7 @@
 
     document.getElementById("resultBadge").textContent = badgeText;
     document.getElementById("resultTitle").textContent = titleText;
-    document.getElementById("resultDesc").innerHTML = descText;
+    document.getElementById("resultDesc").innerHTML = descText; 
     document.getElementById("resultProduct").textContent = product;
     document.getElementById("resultAdvice").textContent = advice;
 
