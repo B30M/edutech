@@ -44,7 +44,7 @@
       font-size: 0.95rem; cursor: pointer; transition: all 0.2s; text-align: left; color: #475569; font-weight: 500;
       position: relative; overflow: hidden;
     }
-    /* [★수정됨] 클릭 시 스타일을 selected 클래스로 분리 */
+    /* [★잔상 해결용] 클릭 시 스타일 */
     .option-btn.selected {
         border-color: var(--primary);
         background: #eef2ff;
@@ -56,7 +56,6 @@
     /* hover/active 스타일은 잔상 방지를 위해 간결하게 유지 */
     .option-btn:hover { border-color: #a5b4fc; background: #f0f4ff; }
     .option-btn:active { transform: scale(0.98); }
-
 
     /* 로딩 화면 */
     #loadingScreen { display: none; text-align: center; padding: 40px 0; }
@@ -235,8 +234,7 @@
   let currentStep = 0;
   let scores = { risk: 0, study: 0, exp: 0 }; 
   let totalScore = 0;
-
-  // [★수정됨] 현재 선택된 버튼 객체를 저장하는 변수 (스타일 잔상 해결용)
+  // [★추가됨] 현재 선택된 버튼 객체를 저장하는 변수 (스타일 잔상 해결용)
   let selectedButton = null; 
 
   function checkPasswordAndStart() {
@@ -258,9 +256,11 @@
 
   function renderQuestion() {
     const container = document.getElementById('questionContainer');
-    // [★수정됨] 이전 질문의 선택 스타일 제거
+    // [★수정됨] 이전 질문의 선택 스타일 제거 및 포커스 강제 해제 (핵심)
     if (selectedButton) {
         selectedButton.classList.remove('selected');
+        // 브라우저가 버튼의 :active/:hover 상태를 잊도록 강제 blur 처리
+        selectedButton.blur(); 
         selectedButton = null;
     }
     
@@ -274,7 +274,7 @@
     
     labels.forEach((label, index) => {
         const score = index + 1;
-        // 버튼 클릭 시 nextWithStyle 함수 호출
+        // nextWithStyle 함수를 호출하도록 수정
         optionsHTML += `<button class="option-btn" onclick="nextWithStyle(this, ${score}, '${q.cat}')">${label}</button>`;
     });
 
@@ -289,9 +289,9 @@
     container.innerHTML = qHTML;
   }
 
-  // [★추가] 버튼 선택 시 스타일 적용 및 다음 질문으로 이동
+  // [★추가] 스타일 적용 및 다음 질문으로 이동하는 함수
   function nextWithStyle(button, score, category) {
-      // 이전에 선택된 버튼의 스타일 제거 (단일 선택 강제)
+      // 이전에 선택된 버튼의 스타일 제거 (클릭 피드백이 겹치는 것 방지)
       const optionsContainer = button.closest('.options');
       optionsContainer.querySelectorAll('.option-btn').forEach(btn => {
           btn.classList.remove('selected');
