@@ -43,11 +43,22 @@
       padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; background: white;
       font-size: 0.95rem; cursor: pointer; transition: all 0.2s; text-align: left; color: #475569; font-weight: 500;
       position: relative; overflow: hidden;
-      /* [★수정됨] 잔상 유발 CSS 무력화 또는 제거 */
-      -webkit-tap-highlight-color: transparent; /* iOS 탭 하이라이트 제거 */
+      /* [★잔상 해결 1/3] iOS 기본 탭 하이라이트 제거 */
+      -webkit-tap-highlight-color: transparent; 
     }
     
-    /* [★수정됨] 클릭 시 스타일 (JavaScript 제어) */
+    /* [★잔상 해결 2/3] 브라우저 :focus / :active 스타일 무력화 */
+    .option-btn:focus, 
+    .option-btn:active {
+        outline: none !important; 
+        box-shadow: none !important;
+        /* 클릭 잔상이 남지 않도록 기본 배경/테두리로 강제 설정 */
+        background: white !important; 
+        border-color: #e2e8f0 !important;
+        transform: scale(1) !important; /* 크기 변화 무력화 */
+    }
+
+    /* 클릭 시 스타일 (JavaScript 제어) */
     .option-btn.selected {
         border-color: var(--primary);
         background: #eef2ff;
@@ -56,9 +67,9 @@
         transform: scale(0.99); 
         box-shadow: 0 1px 4px rgba(99, 102, 241, 0.2);
     }
-    /* hover/active 스타일 잔상 방지를 위해 최소화 */
+    /* hover 스타일만 유지 */
     .option-btn:hover { border-color: #a5b4fc; background: #f0f4ff; }
-    .option-btn:active { transform: scale(0.98); }
+
 
     /* 로딩 화면 */
     #loadingScreen { display: none; text-align: center; padding: 40px 0; }
@@ -198,7 +209,7 @@
 </div>
 
 <script>
-  // [★추가] 모바일 더블 탭(Zoom) 및 핀치 줌 방지 스크립트
+  // [★잔상 해결 3/3] 모바일 더블 탭(Zoom) 및 핀치 줌 방지 스크립트
   document.addEventListener('dblclick', function(e) {
       e.preventDefault();
       e.stopPropagation();
