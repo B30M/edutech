@@ -6,14 +6,12 @@
   <title>대학생 투자 성향 리포트</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* V3 디자인 테마 */
     :root { --primary: #6366f1; --accent: #8b5cf6; --bg: #f8fafc; }
     body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
     
-    /* 모든 요소의 기본 터치 하이라이트 제거 */
+    /* 기본 설정: 탭 하이라이트 제거 및 선택 방지 */
     * { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
 
-    /* 컨테이너 */
     .container { 
       width: 90%; max-width: 420px; background: rgba(255, 255, 255, 0.95); 
       padding: 32px; border-radius: 24px; 
@@ -22,69 +20,64 @@
       margin: 20px 16px; 
     }
     
-    /* 타이틀 */
     h1 { font-size: 1.7rem; text-align: center; background: linear-gradient(to right, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; font-weight: 800; }
     .subtitle { text-align: center; color: #64748b; font-size: 0.95rem; margin-bottom: 30px; line-height: 1.5; }
 
-    /* 진행바 */
     .progress-container { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 24px; overflow: hidden; }
     .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); width: 0%; transition: width 0.4s ease; border-radius: 4px; }
 
-    /* 질문 카드 */
     .question-box { display: none; animation: slideUp 0.4s ease-out; }
     .question-box.active { display: block; }
     h2 { font-size: 1.2rem; color: #1e293b; margin-bottom: 20px; line-height: 1.5; font-weight: 700; word-break: keep-all; }
     
-    /* 옵션 버튼 */
     .options { display: flex; flex-direction: column; gap: 10px; }
+    
+    /* [★핵심] 버튼 기본 스타일 */
     .option-btn {
       padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; background: white;
-      font-size: 0.95rem; cursor: pointer; transition: all 0.2s; text-align: left; color: #475569; font-weight: 500;
+      font-size: 0.95rem; cursor: pointer; text-align: left; color: #475569; font-weight: 500;
       position: relative; overflow: hidden;
-    }
-    
-    /* 버튼 스타일 강제 초기화 (잔상 방지) */
-    .option-btn:focus, .option-btn:active {
-        outline: none !important; box-shadow: none !important;
-        background: white !important; border-color: #e2e8f0 !important;
-        transform: scale(1) !important; 
+      transition: transform 0.1s, background 0.1s; /* 부드러운 효과 */
     }
 
-    /* 선택된 버튼 스타일 (JS 제어) */
-    .option-btn.selected {
+    /* [★핵심 해결책] 마우스가 있는 환경(PC)에서만 호버 효과 적용 */
+    @media (hover: hover) {
+      .option-btn:hover {
+        border-color: #a5b4fc; background: #f0f4ff;
+      }
+    }
+
+    /* [★핵심] 모바일/PC 공통: 눌렸을 때(active) 및 선택된 상태(selected) */
+    .option-btn:active, .option-btn.selected {
         border-color: var(--primary) !important;
         background: #eef2ff !important;
         color: var(--primary) !important;
         font-weight: bold !important;
-        transform: scale(0.99) !important; 
+        transform: scale(0.98); 
+        outline: none;
     }
-    .option-btn:hover { border-color: #a5b4fc; background: #f0f4ff; }
 
-    /* 로딩 화면 */
+    /* 로딩 및 결과 스타일 */
     #loadingScreen { display: none; text-align: center; padding: 40px 0; }
     .spinner { width: 50px; height: 50px; border: 5px solid #e2e8f0; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
     .loading-text { font-size: 1.1rem; color: #64748b; font-weight: 600; }
 
-    /* 결과 화면 */
     #resultBox { display: none; text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .badge { display: inline-block; padding: 8px 16px; background: #eef2ff; color: var(--primary); border-radius: 30px; font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; border: 1px solid #c7d2fe; }
     .result-name { font-size: 1.8rem; margin: 0 0 5px 0; color: #1e293b; font-weight: 800; line-height: 1.3; word-break: keep-all; }
     .result-desc { font-size: 1rem; color: #64748b; margin-bottom: 20px; font-weight: 500; line-height: 1.4; text-align: center; }
 
-    /* 차트 및 범례 */
     .chart-legend { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 15px; font-size: 0.85rem; color: #64748b; font-weight: 600; }
     .legend-box { width: 40px; height: 14px; background-color: rgba(79, 70, 229, 0.2); border: 2px solid #4F46E5; }
     .chart-container { width: 100%; height: 320px; display: flex; justify-content: center; align-items: center; margin: 10px 0 0 0; position: relative; }
     #resultChart { max-width: 100%; max-height: 100%; }
     
-    /* 결과 카드 */
     .result-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; text-align: left; margin-top: 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
     .card-item { margin-bottom: 12px; }
     .card-label { font-size: 0.9rem; color: #64748b; font-weight: 700; display: block; margin-bottom: 4px; }
     .card-value { font-size: 1rem; color: #334155; line-height: 1.5; font-weight: 500; }
     .highlight { color: var(--primary); font-weight: 700; }
 
-    /* 입력창 및 버튼 */
     .password-section { margin: 30px 0; text-align: center; }
     .pw-input { width: 60%; padding: 14px; font-size: 18px; border: 2px solid #cbd5e1; border-radius: 12px; outline: none; text-align: center; letter-spacing: 4px; transition: border 0.3s; background: #f8fafc; }
     .pw-input:focus { border-color: var(--primary); background: white; }
@@ -115,7 +108,7 @@
   </div>
 
   <div id="quiz" style="display:none;">
-    <div class="progress-container" id="progressContainer"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
     <div id="questionContainer"></div>
   </div>
 
@@ -142,27 +135,9 @@
 </div>
 
 <script>
-  // 1. 더블 탭 및 핀치 줌 방지
-  document.addEventListener('dblclick', function(e) { e.preventDefault(); e.stopPropagation(); }, false);
-  let lastTouchEnd = 0;
-  document.addEventListener('touchend', function (event) {
-      const now = (new Date()).getTime();
-      if (now - lastTouchEnd <= 300) { event.preventDefault(); }
-      lastTouchEnd = now;
-  }, false);
-
-  // [★핵심] 진행바 강제 터치 함수 (페이지 전환 후 호출됨)
-  function forceTouchOnProgressBar() {
-      const pBar = document.getElementById('progressContainer');
-      if(pBar) {
-          // 터치 시작 및 끝 이벤트를 강제로 발생시켜 포커스를 가져옴
-          const eventOptions = { bubbles: true, cancelable: true, view: window };
-          pBar.dispatchEvent(new MouseEvent('mousedown', eventOptions));
-          pBar.dispatchEvent(new MouseEvent('mouseup', eventOptions));
-          pBar.dispatchEvent(new MouseEvent('click', eventOptions)); // 클릭까지 발생시킴
-      }
-  }
-
+  // 모바일 확대 방지
+  document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
+  
   const CORRECT_PASSWORD = "1208"; 
   const questions = [
     { t: "익숙한 길보다 새로운 도전을 통해 얻는 성과가 더 중요하다.", cat: "risk" },
@@ -183,7 +158,8 @@
 
   function checkPasswordAndStart() {
     const input = document.getElementById("passwordInput").value;
-    if (input === CORRECT_PASSWORD) { startSurvey(); } else { alert("비밀번호가 틀립니다. 다시 시도하십시오."); document.getElementById("passwordInput").value = ""; document.getElementById("passwordInput").focus(); }
+    if (input === CORRECT_PASSWORD) { startSurvey(); } 
+    else { alert("비밀번호가 틀립니다. 다시 시도하십시오."); document.getElementById("passwordInput").value = ""; document.getElementById("passwordInput").focus(); }
   }
 
   function startSurvey() {
@@ -194,7 +170,8 @@
 
   function renderQuestion() {
     const container = document.getElementById('questionContainer');
-    container.innerHTML = '';
+    container.innerHTML = ''; // 기존 내용 삭제 (이 과정에서 버튼 DOM도 삭제되어 잔상 제거)
+    
     const q = questions[currentStep];
     const percent = ((currentStep) / questions.length) * 100;
     document.getElementById('progressBar').style.width = percent + '%';
@@ -204,28 +181,29 @@
     
     labels.forEach((label, index) => {
         const score = index + 1;
-        optionsHTML += `<button class="option-btn" onclick="nextWithStyle(this, ${score}, '${q.cat}')">${label}</button>`;
+        optionsHTML += `<button class="option-btn" onclick="handleSelect(this, ${score}, '${q.cat}')">${label}</button>`;
     });
 
-    const qHTML = `
+    container.innerHTML = `
       <div class="question-box active">
         <h2>Q${currentStep + 1}.<br>${q.t}</h2>
         <div class="options">${optionsHTML}</div>
       </div>
     `;
-    container.innerHTML = qHTML;
   }
 
-  function nextWithStyle(button, score, category) {
-      const optionsContainer = button.closest('.options');
-      optionsContainer.querySelectorAll('.option-btn').forEach(btn => { btn.classList.remove('selected'); });
-      button.classList.add('selected');
+  function handleSelect(btn, score, category) {
+      // 1. 모든 버튼에서 selected 제거
+      const allBtns = document.querySelectorAll('.option-btn');
+      allBtns.forEach(b => b.classList.remove('selected'));
+      
+      // 2. 현재 버튼만 활성화
+      btn.classList.add('selected');
 
+      // 3. 잠시 후 다음 단계 (버튼 DOM 자체가 사라지므로 잔상도 사라짐)
       setTimeout(() => {
-          button.classList.remove('selected');
-          button.blur(); 
           next(score, category);
-      }, 200);
+      }, 250); 
   }
 
   function next(score, category) {
@@ -234,13 +212,7 @@
     currentStep++;
     
     if (currentStep < questions.length) {
-      renderQuestion(); // 다음 질문 렌더링
-      
-      // [★핵심] 페이지 전환(렌더링) 직후, 아주 짧은 딜레이 후 강제 터치 실행
-      setTimeout(() => {
-          forceTouchOnProgressBar();
-      }, 10); 
-
+      renderQuestion();
     } else {
       showLoading();
     }
